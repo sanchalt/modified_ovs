@@ -8918,6 +8918,12 @@ choose_rule_to_evict(struct oftable *table, struct rule **rulep)
         struct rule *rule;
 
         HEAP_FOR_EACH (rule, evg_node, &evg->rules) {
+            VLOG_INFO("Sanchal |%s| %s():%d() - Rule created = %lld, Rule modified = %lld, importance %d",rule->ofproto->name,__func__, __LINE__,rule->created, rule->modified, rule->importance);
+            struct ds s = DS_EMPTY_INITIALIZER;
+            ofproto_get_all_flows(rule->ofproto, &s, false);
+            char *c = ds_steal_cstr(&s);
+            VLOG_INFO("Sanchal 2 \n %s", c);
+            free(c);
             *rulep = rule;
             return true;
         }
@@ -8925,7 +8931,6 @@ choose_rule_to_evict(struct oftable *table, struct rule **rulep)
 
     return false;
 }
-
 /* Eviction groups. */
 
 /* Returns the priority to use for an eviction_group that contains 'n_rules'
@@ -9086,7 +9091,7 @@ rule_eviction_priority(struct ofproto *ofproto, struct rule *rule)
      *
      * This should work OK for program runs that last UINT32_MAX seconds or
      * less.  Therefore, please restart OVS at least once every 136 years. */
-    uint32_t expiration_ofs = (expiration >> 10) - (time_boot_msec() >> 10);
+    //uint32_t expiration_ofs = (expiration >> 10) - (time_boot_msec() >> 10);
 
     /* Combine expiration time with OpenFlow "importance" to form a single
      * priority value.  We want flows with relatively low "importance" to be
@@ -9097,8 +9102,8 @@ rule_eviction_priority(struct ofproto *ofproto, struct rule *rule)
      * Small 'priority' should be evicted before those with large 'priority'.
      * The caller expects the opposite convention (a large return value being
      * more attractive for eviction) so we invert it before returning. */
-    uint64_t priority = ((uint64_t) rule->importance << 32) + expiration_ofs;
-    return UINT64_MAX - priority;
+    //uint64_t priority = ((uint64_t) rule->importance << 32) + expiration_ofs;
+    return UINT64_MAX - expiration;
 }
 
 /* Adds 'rule' to an appropriate eviction group for its oftable's
